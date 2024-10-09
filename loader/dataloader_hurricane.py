@@ -205,14 +205,28 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     - config: config object.
     """ 
     Ids=df['station_id'].unique()   
-    station_df=create_stationDf(df,Ids, 'offset')
-    config['N_NODE'] = station_df.shape[1]
 
+    # Split df based on config["SPLITS"]
+    df_train, df_val, df_test = get_splits_hurricanes(df, config['SPLITS'])
+
+    # Create station df_* from df_*
+    station_df_train =create_stationDf(df_train, Ids, 'offset')
+    station_df_val =create_stationDf(df_val, Ids, 'offset')
+    station_df_test =create_stationDf(df_test, Ids, 'offset')
+
+
+    # config['N_NODE'] = station_df.shape[1]
+    config['N_NODE'] = len(Ids)
     
 
-    # Calculate adjacency matrix - fixed for all timesteps
-    W=get_distance(df, station_df)
-    Corr=get_correlation(df, station_df)
+    # Calculate adjacency matrix based on
+    # concatenated station_df_train and station_df_val.
+    # Fixed for all timesteps
+
+    # W=get_distance(df, pd.concat([station_df_train, station_df_val], axis=0))
+    W=get_distance(df, station_df_train)
+    # Corr=get_correlation(df, pd.concat([station_df_train, station_df_val], axis=0))
+    Corr=get_correlation(df, station_df_train)
     adj_matrix=create_adjancency_matrix(W,Corr, W_mask, Corr_mask)
     
     
@@ -235,10 +249,8 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     edge_attr = adj_matrix[filtered_edge_index[0], filtered_edge_index[1]] #get edges attributes 
     # edge_attr = edge_attr.resize_(edge_attr.shape[0], 1)
 
-    # Split stations_df based on config["SPLITS"]
-    station_df_train, station_df_val, station_df_test = get_splits_hurricanes(station_df, config['SPLITS'])
 
-
+    # Apply sliding window
     x_train, y_train = sliding_window(station_df_train, config, 1)
     x_val, y_val = sliding_window(station_df_val, config, 1)
     x_test, y_test = sliding_window(station_df_test, config, config['N_PRED'])
@@ -322,12 +334,9 @@ def get_splits_hurricanes(dataset, splits):
     :param dataset: Dataset object to split
     :param splits: [train, val, test] ratios (must be lower than 1 and sum of total =1)
     """
-    split_train, split_val, _ = splits
-    n_total=len(dataset)
-    i = int(n_total*split_train)
-    j = int(n_total*split_val)
-    train = dataset[:i]
-    val = dataset[i:i+j]
-    test = dataset[i+j:]
+    train = dataset[dataset['storm'].isin(splits['TRAIN_STORMS'])].dropna()
+    val = dataset[dataset['storm'].isin(splits['TEST_STORMS'])].dropna()
+    test = dataset[dataset['storm'].isin(splits['VAL_STORMS'])].dropna()
+    
 
     return train, val, test
