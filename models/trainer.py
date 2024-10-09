@@ -4,6 +4,7 @@ from tqdm import tqdm
 import time
 import os
 import matplotlib.pyplot as plt
+from sklearn.metrics import r2_score
 
 from models.st_gat import ST_GAT
 from models.st_gcn import ST_GCN
@@ -43,6 +44,7 @@ def eval(model, device, dataloader, type=''):
                
             truth = batch.y.view(pred.shape)
             # print("Truth: ",truth.shape)
+            # print("Pred: ", pred.shape)
             # plt.plot(truth)
             # plt.show()
 
@@ -109,7 +111,7 @@ def model_train(train_dataloader, val_dataloader, config, device):
     # For every epoch, train the model on training dataset. Evaluate model on validation dataset
     for epoch in range(config['EPOCHS']):
         loss = train(model, device, train_dataloader, optimizer, loss_fn, epoch)
-        print(f"Loss: {loss:.3f}")
+        print(f"Loss: {loss:.5f}")
         if epoch % 5 == 0:
             train_mae, train_rmse, train_mape, _, _ = eval(model, device, train_dataloader, 'Train')
             val_mae, val_rmse, val_mape, _, _ = eval(model, device, val_dataloader, 'Valid')
@@ -143,6 +145,7 @@ def model_test(model, test_dataloader, device, node, config):
     print("Truth:",y_truth.shape)
     plot_prediction(test_dataloader, y_pred, y_truth, node, config)
 
+
 def plot_prediction(test_dataloader, y_pred, y_truth, node, config):
     # Calculate the truth
     s = y_truth.shape
@@ -174,11 +177,12 @@ def plot_prediction(test_dataloader, y_pred, y_truth, node, config):
     y_pred = torch.flatten(y_pred)
     print(y_pred)
 
-    t = [t for t in range(0, len(y_pred))]
+    print("R\u00b2 = {:.2f}".format(r2_score(y_truth, y_pred)))
+    t = [t*60 for t in range(0, len(y_pred))]
     plt.plot(t, y_pred, marker='o',label='ST-GAT')
     plt.plot(t, y_truth, marker='s',label='truth')
-    plt.xlabel('Time')
-    plt.ylabel(' prediction')
+    # plt.xlabel('Time (mins.)')
+    plt.ylabel('Offset (ft.)')
     plt.title('Predictions over time')
     plt.legend()
     # plt.savefig('predicted_times.png')

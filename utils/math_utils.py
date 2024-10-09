@@ -51,3 +51,14 @@ def MAE(v, v_):
     :return: torch scalar, MAE averages on all elements of input.
     """
     return torch.mean(torch.abs(v_ - v))
+
+def R2(v, v_):
+    """
+    Mean squared error.
+    :param v: torch array, ground truth.
+    :param v_: torch array, prediction.
+    :return: torch scalar, RMSE averages on all elements of input.
+    """
+    SSres = torch.sum((v - v_)**2)
+    SStot = torch.sum((v - torch.mean(v))**2)
+    return 1 - SSres/SStot

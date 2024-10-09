@@ -5,7 +5,7 @@ class ST_GAT(torch.nn.Module):
     """
     Spatio-Temporal Graph Attention Network as presented in https://ieeexplore.ieee.org/document/8903252
     """
-    def __init__(self, in_channels, out_channels, n_nodes, heads=12, dropout=0.0):
+    def __init__(self, in_channels, out_channels, n_nodes, heads=36, dropout=0.0):
         """
         Initialize the ST-GAT model
         :param in_channels Number of input channels
@@ -21,8 +21,8 @@ class ST_GAT(torch.nn.Module):
         self.n_nodes = n_nodes
 
         self.n_preds = 9 #NN: get it from config
-        lstm1_hidden_size = 32
-        lstm2_hidden_size = 128
+        lstm1_hidden_size = 128   #32
+        lstm2_hidden_size = 128  #128
 
         # single graph attentional layer with 8 attention heads
         self.gat = GATConv(in_channels=in_channels, out_channels=in_channels,
