@@ -342,8 +342,8 @@ def get_splits_hurricanes(dataset, splits):
     :param splits: [train, val, test] ratios (must be lower than 1 and sum of total =1)
     """
     train = dataset[dataset['storm'].isin(splits['TRAIN_STORMS'])].dropna()
-    val = dataset[dataset['storm'].isin(splits['TEST_STORMS'])].dropna()
-    test = dataset[dataset['storm'].isin(splits['VAL_STORMS'])].dropna()
+    val = dataset[dataset['storm'].isin(splits['VAL_STORMS'])].dropna()
+    test = dataset[dataset['storm'].isin(splits['TEST_STORMS'])].dropna()
     
 
     return train, val, test
