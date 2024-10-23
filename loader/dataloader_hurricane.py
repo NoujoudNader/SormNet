@@ -222,8 +222,8 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     station_df_test = station_df_test[station_df_test.columns.intersection(new_common_ids)]
 
 
-    # config['N_NODE'] = station_df.shape[1]
-    config['N_NODE'] = len(new_common_ids)
+    config['N_NODE'] = station_df_train.shape[1]
+    # config['N_NODE'] = len(new_common_ids)
     
 
     # Calculate adjacency matrix based on
@@ -231,9 +231,9 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     # Fixed for all timesteps
 
     # W=get_distance(df, pd.concat([station_df_train, station_df_val], axis=0))
-    W=get_distance(df, station_df_train)
+    W=get_distance(df_train, station_df_train)
     # Corr=get_correlation(df, pd.concat([station_df_train, station_df_val], axis=0))
-    Corr=get_correlation(df, station_df_train)
+    Corr=get_correlation(df_train, station_df_train)
     adj_matrix=create_adjancency_matrix(W,Corr, W_mask, Corr_mask)
     
     
