@@ -206,6 +206,8 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     """ 
     Ids=df['station_id'].unique()   
 
+    
+
     # Split df based on config["SPLITS"]
     df_train, df_val, df_test = get_splits_hurricanes(df, config['SPLITS'])
 
@@ -214,9 +216,14 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     station_df_val =create_stationDf(df_val, Ids, 'offset')
     station_df_test =create_stationDf(df_test, Ids, 'offset')
 
+    new_common_ids = list(set(station_df_train.columns.values) & set(station_df_val.columns.values) & set(station_df_test.columns.values))
+    station_df_train = station_df_train[station_df_train.columns.intersection(new_common_ids)]
+    station_df_val = station_df_val[station_df_val.columns.intersection(new_common_ids)]
+    station_df_test = station_df_test[station_df_test.columns.intersection(new_common_ids)]
+
 
     # config['N_NODE'] = station_df.shape[1]
-    config['N_NODE'] = len(Ids)
+    config['N_NODE'] = len(new_common_ids)
     
 
     # Calculate adjacency matrix based on
