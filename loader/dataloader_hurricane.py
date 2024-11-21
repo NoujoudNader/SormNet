@@ -189,11 +189,11 @@ def sliding_window(station_df, config, sliding_step):
 
         data=np.array(station_df.iloc[sta:end,:].values)
         data=np.swapaxes(data, 0, 1) #data is the offset of all stations
-        print("Data shape: ", data.shape)
+        # print("Data shape: ", data.shape)
         x[:,count*config['N_HIST']:count*config['N_HIST']+config['N_HIST']] = data[:, :config['N_HIST']]
         y[:,count*config['N_PRED']:count*config['N_PRED']+config['N_PRED']] = data[:, config['N_HIST']::]
 
-    print("y shape: ", y.shape)
+    # print("y shape: ", y.shape)
     return x, y 
 
 
