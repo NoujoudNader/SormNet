@@ -222,8 +222,8 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     station_df_val = station_df_val[station_df_val.columns.intersection(new_common_ids)]
     station_df_test = station_df_test[station_df_test.columns.intersection(new_common_ids)]
 
-    id='8726724'
-    y_truth=df_test[df_test['station_id']==id]['offset']
+    # id='8726724'
+    # y_truth=df_test[df_test['station_id']==id]['offset']
     # print(y_truth)
     # plt.figure()
     # plt.plot(y_truth)
@@ -273,9 +273,9 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     x_test, y_test = sliding_window(station_df_test, config, config['N_PRED'])
     # check y_test again after windowing
     # print(y_test[0])
-    plt.figure()
-    plt.plot(y_test[0])
-    plt.show()
+    # plt.figure()
+    # plt.plot(y_test[0])
+    # plt.show()
     # Scale data
     x_scaler = MinMaxScaler().fit(x_train.reshape(-1,1))
     x_train = x_scaler.transform(x_train.reshape(-1,1)).reshape(x_train.shape[0], x_train.shape[1])
