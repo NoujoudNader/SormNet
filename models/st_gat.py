@@ -23,7 +23,7 @@ class ST_GAT(torch.nn.Module):
 
         self.n_preds = 9 #NN: get it from config
         lstm1_hidden_size = 128   #32
-        lstm2_hidden_size = 128  #128
+        lstm2_hidden_size = 256  #128
         hidden_dim=32
         # Node-level MLP (acts as a feature transformer)
         self.node_mlp = nn.Sequential(
@@ -38,25 +38,25 @@ class ST_GAT(torch.nn.Module):
         self.gcn = GCNConv(in_channels=in_channels, out_channels=in_channels, dropout=0, concat=False)
 
         # add two LSTM layers
-        self.lstm1 = torch.nn.LSTM(input_size=self.n_nodes, hidden_size=lstm1_hidden_size, num_layers=1)
+        self.lstm1 = torch.nn.LSTM(input_size=self.n_nodes, hidden_size=lstm1_hidden_size, num_layers=2)
         for name, param in self.lstm1.named_parameters():
             if 'bias' in name:
                 torch.nn.init.constant_(param, 0.0)
             elif 'weight' in name:
                 torch.nn.init.xavier_uniform_(param)
-        self.lstm2 = torch.nn.LSTM(input_size=lstm1_hidden_size, hidden_size=lstm2_hidden_size, num_layers=1)
+        self.lstm2 = torch.nn.LSTM(input_size=lstm1_hidden_size, hidden_size=lstm2_hidden_size, num_layers=5)
         for name, param in self.lstm2.named_parameters():
             if 'bias' in name:
                 torch.nn.init.constant_(param, 0.0)
             elif 'weight' in name:
                 torch.nn.init.xavier_uniform_(param)
         
-        self.lstm3 = torch.nn.LSTM(input_size=lstm2_hidden_size, hidden_size=lstm2_hidden_size, num_layers=1)
-        for name, param in self.lstm3.named_parameters():
-            if 'bias' in name:
-                torch.nn.init.constant_(param, 0.0)
-            elif 'weight' in name:
-                torch.nn.init.xavier_uniform_(param)
+        # self.lstm3 = torch.nn.LSTM(input_size=lstm2_hidden_size, hidden_size=lstm2_hidden_size, num_layers=1)
+        # for name, param in self.lstm3.named_parameters():
+        #     if 'bias' in name:
+        #         torch.nn.init.constant_(param, 0.0)
+        #     elif 'weight' in name:
+        #         torch.nn.init.xavier_uniform_(param)
 
         # fully-connected neural network
         self.linear = torch.nn.Linear(lstm2_hidden_size, self.n_nodes*self.n_pred)
@@ -75,7 +75,7 @@ class ST_GAT(torch.nn.Module):
         else:
             x = torch.cuda.FloatTensor(x)
         
-        x = self.node_mlp(x)  # Node-level transformation
+        # x = self.node_mlp(x)  # Node-level transformation
         x = self.gat(x, edge_index)
         x = F.dropout(x, self.dropout, training=self.training)
         x = self.gcn(x, edge_index)
@@ -91,7 +91,7 @@ class ST_GAT(torch.nn.Module):
         x = torch.movedim(x, 2, 0)
         x, _ = self.lstm1(x)
         x, _ = self.lstm2(x)
-        x, _ = self.lstm3(x) 
+        # x, _ = self.lstm3(x) 
         # Output contains h_t for each timestep, only the last one has all input's accounted for
         x = torch.squeeze(x[-1, :, :])
         x = self.linear(x)
