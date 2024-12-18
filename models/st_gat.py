@@ -6,7 +6,7 @@ class ST_GAT(torch.nn.Module):
     """
     Spatio-Temporal Graph Attention Network as presented in https://ieeexplore.ieee.org/document/8903252
     """
-    def __init__(self, in_channels, out_channels, n_nodes, heads=36, dropout=0.0):
+    def __init__(self, in_channels, out_channels, n_nodes, heads=64, dropout=0.0):
         """
         Initialize the ST-GAT model
         :param in_channels Number of input channels
@@ -24,12 +24,16 @@ class ST_GAT(torch.nn.Module):
         self.n_preds = 9 #NN: get it from config
         lstm1_hidden_size = 128   #32
         lstm2_hidden_size = 256  #128
-        hidden_dim=32
+        hidden_dim=256
         # Node-level MLP (acts as a feature transformer)
         self.node_mlp = nn.Sequential(
             nn.Linear(in_channels, hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, in_channels)  # Transform to hidden_dim space
+            nn.Linear(hidden_dim, in_channels),
+            nn.ReLU(),
+            nn.Linear(in_channels, hidden_dim), # Transform to hidden_dim space
+            nn.ReLU(),
+            nn.Linear(hidden_dim, in_channels)
         )
         
         # single graph attentional layer with 8 attention heads
@@ -75,7 +79,7 @@ class ST_GAT(torch.nn.Module):
         else:
             x = torch.cuda.FloatTensor(x)
         
-        # x = self.node_mlp(x)  # Node-level transformation
+        x = self.node_mlp(x)  # Node-level transformation
         x = self.gat(x, edge_index)
         x = F.dropout(x, self.dropout, training=self.training)
         x = self.gcn(x, edge_index)

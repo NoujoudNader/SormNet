@@ -241,9 +241,9 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     # Fixed for all timesteps
 
     # W=get_distance(df, pd.concat([station_df_train, station_df_val], axis=0))
-    W=get_distance(df_train, station_df_train)
+    W=get_distance(pd.concat((df_train, df_val, df_test), axis=0, ignore_index=True), pd.concat((station_df_train, station_df_val, station_df_test), axis=0, ignore_index=True))
     # Corr=get_correlation(df, pd.concat([station_df_train, station_df_val], axis=0))
-    Corr=get_correlation(df_train, station_df_train)
+    Corr=get_correlation(pd.concat((df_train, df_val, df_test), axis=0, ignore_index=True), pd.concat((station_df_train, station_df_val, station_df_test), axis=0, ignore_index=True))
     adj_matrix=create_adjancency_matrix(W,Corr, W_mask, Corr_mask)
     
     
