@@ -24,16 +24,16 @@ class ST_GAT(torch.nn.Module):
         self.n_preds = 9 #NN: get it from config
         lstm1_hidden_size = 128   #32
         lstm2_hidden_size = 256  #128
-        hidden_dim=256
+        hidden_dim=128
         # Node-level MLP (acts as a feature transformer)
         self.node_mlp = nn.Sequential(
             nn.Linear(in_channels, hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, in_channels),
+            nn.Linear(hidden_dim, hidden_dim+64),
             nn.ReLU(),
-            nn.Linear(in_channels, hidden_dim), # Transform to hidden_dim space
+            nn.Linear(hidden_dim+64, hidden_dim+128), # Transform to hidden_dim space
             nn.ReLU(),
-            nn.Linear(hidden_dim, in_channels)
+            nn.Linear(hidden_dim+128, in_channels)
         )
         
         # single graph attentional layer with 8 attention heads
