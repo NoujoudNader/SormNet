@@ -126,7 +126,7 @@ def create_adjancency_matrix(W,Corr, W_mask=1000, Corr_mask=0.75):
 
     # Create an adjacency matrix with elements from Corr where mask is True, otherwise 0
     adjacency_matrix = np.where(mask, Corr, 0)
-
+    np.savetxt('adjacency_matrix.dat', adjacency_matrix)
     return adjacency_matrix
 
 def create_stationDf(data, Ids, attribute):
