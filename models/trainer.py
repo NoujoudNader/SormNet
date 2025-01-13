@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.optim as optim
 from tqdm import tqdm
@@ -105,11 +106,24 @@ def model_train(train_dataloader, val_dataloader, config, device):
     loss_fn = torch.nn.MSELoss
 
     model.to(device)
+    loss_values =  np.ones(config['EPOCHS'])*np.nan
+    train_rmse_values = np.ones(config['EPOCHS'])*np.nan
+    val_rmse_values = np.ones(config['EPOCHS'])*np.nan
 
     # For every epoch, train the model on training dataset. Evaluate model on validation dataset
     for epoch in range(config['EPOCHS']):
         loss = train(model, device, train_dataloader, optimizer, loss_fn, epoch)
         print(f"Loss: {loss:.3f}")
+        
+        # Save to output arrays
+        _, train_rmse, _, _, _ = eval(model, device, train_dataloader, 'Train')
+        _, val_rmse, _, _, _ = eval(model, device, val_dataloader, 'Valid')
+
+        loss_values[epoch] = loss
+        train_rmse_values[epoch] = train_rmse
+        val_rmse_values[epoch] = val_rmse
+
+        # Print to writer
         if epoch % 5 == 0:
             train_mae, train_rmse, train_mape, _, _ = eval(model, device, train_dataloader, 'Train')
             val_mae, val_rmse, val_mape, _, _ = eval(model, device, val_dataloader, 'Valid')
@@ -130,7 +144,7 @@ def model_train(train_dataloader, val_dataloader, config, device):
             "loss": loss,
             }, os.path.join(config["CHECKPOINT_DIR"], f"model_{timestr}.pt"))
 
-    return model
+    return model, loss_values, train_rmse_values, val_rmse_values
 
 def model_test(model, test_dataloader, device, node, config):
     """

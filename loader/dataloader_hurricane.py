@@ -24,7 +24,8 @@ def haversine(lat1, lon1, lat2, lon2):
 
     a = math.sin(delta_phi / 2.0) ** 2 + math.cos(phi_1) * math.cos(phi_2) * math.sin(delta_lambda / 2.0) ** 2
     
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    # c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    c = 2*math.asin(math.sqrt(a))
 
     meters = R * c  # output distance in meters
     km = meters / 1000.0  # output distance in kilometers
@@ -35,6 +36,7 @@ def get_distance(df, station_df): # NN: save time by filling only lower triangle
     # Ids=df['station_id'].unique() 
     # station_df=create_stationDf(df,Ids, 'offset')
     Ids_new=station_df.columns
+    # print('get_distance: ids_new\n', Ids_new)
 
     # dist_arr=[]
     dist_arr=np.zeros([len(Ids_new), len(Ids_new)])
@@ -44,19 +46,18 @@ def get_distance(df, station_df): # NN: save time by filling only lower triangle
         # dist_i = []
         station_i=df[df['station_id']==Ids_new[i]]
         station_i.reset_index(drop=True,inplace=True)
-        lat1=station_i['x'][0]
-        lng1=station_i['y'][0]
+        lat1=station_i['y'].dropna().unique()[0]
+        lng1=station_i['x'].dropna().unique()[0]
 
         # for j in range(len(Ids_new)):
-        for j in range(i+1):
+        for j in range(i):
             if j > len(Ids_new):
                 break
             station_j=df[df['station_id']==Ids_new[j]]
             station_j.reset_index(drop=True,inplace=True)
             #print(station)
-            lat2=station_j['x'][0]
-            
-            lng2=station_j['y'][0]
+            lat2=station_j['y'].dropna().unique()[0]
+            lng2=station_j['x'].dropna().unique()[0]
             
             dist_arr[i,j]=haversine(lat1, lng1, lat2, lng2)
             # dist= haversine(lat1, lng1, lat2, lng2)
@@ -67,9 +68,11 @@ def get_distance(df, station_df): # NN: save time by filling only lower triangle
     # Convert dist arrays to numpy arrays
     # dist_arr = np.array(dist_arr)
 
+    
+
     # https://stackoverflow.com/questions/16444930/copy-upper-triangle-to-lower-triangle-in-a-python-matrix/58806735#58806735
     dist_arr = dist_arr + dist_arr.T - np.diag(np.diag(dist_arr)) 
-
+    np.savetxt('distance_matrix.dat', dist_arr)
     return dist_arr
 
 
@@ -77,6 +80,8 @@ def get_correlation(df, station_df): # NN: save time by filling only lower trian
     # Ids=df['station_id'].unique()
     # station_df=create_stationDf(df,Ids, 'offset')
     Ids_new=station_df.columns
+    # print('get_correlation: ids_new\n', Ids_new)
+
 
     # correlation_mat=[]
     correlation_mat=np.zeros([len(Ids_new), len(Ids_new)])
@@ -222,6 +227,14 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     station_df_val = station_df_val[station_df_val.columns.intersection(new_common_ids)]
     station_df_test = station_df_test[station_df_test.columns.intersection(new_common_ids)]
 
+    # Drop column 53:
+    drop_list = [station_df_train.columns[53], station_df_train.columns[71], station_df_train.columns[72], station_df_train.columns[73]]
+    station_df_train.drop(drop_list, axis=1, inplace=True)
+    station_df_val.drop(drop_list, axis=1, inplace=True)
+    station_df_test.drop(drop_list, axis=1, inplace=True)
+
+
+
     # id='8726724'
     # y_truth=df_test[df_test['station_id']==id]['offset']
     # print(y_truth)
@@ -240,12 +253,13 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     # concatenated station_df_train and station_df_val.
     # Fixed for all timesteps
 
-    # W=get_distance(df, pd.concat([station_df_train, station_df_val], axis=0))
-    W=get_distance(pd.concat((df_train, df_val, df_test), axis=0, ignore_index=True), pd.concat((station_df_train, station_df_val, station_df_test), axis=0, ignore_index=True))
-    # Corr=get_correlation(df, pd.concat([station_df_train, station_df_val], axis=0))
-    Corr=get_correlation(pd.concat((df_train, df_val, df_test), axis=0, ignore_index=True), pd.concat((station_df_train, station_df_val, station_df_test), axis=0, ignore_index=True))
+    W=get_distance(df, station_df_train)
+    # W=get_distance(pd.concat((df_train, df_val, df_test), axis=0, ignore_index=True), pd.concat((station_df_train, station_df_val, station_df_test), axis=0, ignore_index=True))
+    Corr=get_correlation(df, station_df_train)
+    # Corr=get_correlation(pd.concat((df_train, df_val, df_test), axis=0, ignore_index=True), pd.concat((station_df_train, station_df_val, station_df_test), axis=0, ignore_index=True))
     adj_matrix=create_adjancency_matrix(W,Corr, W_mask, Corr_mask)
     
+
     
 
     _,n_node = W.shape
@@ -292,10 +306,122 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     val_gnn = create_temporal_graph(n_node, edge_index, edge_attr, config, len(station_df_val), x_val, y_val)
     test_gnn = create_temporal_graph(n_node, edge_index, edge_attr, config, len(station_df_test), x_test, y_test)
 
+    # Plot graph
+    # import matplotlib.pyplot as plt
+    # import matplotlib as mpl
+
+    # import cartopy.crs as crs
+    # import cartopy.feature as cfeature   
+
+    # import networkx as nx
+    # from torch_geometric.utils import to_networkx
+
+    # g = to_networkx(train_gnn[0], to_undirected=True)   
+    #  # mapping = {}
+    # positions = {}
+    # for node_name in g.nodes:
+    #     # mapping[node_name]=station_df_train.columns[node_name]
+    #     x = df['x'].where(df['station_id']==str(station_df_train.columns[node_name])).dropna().unique()[0]
+    #     y = df['y'].where(df['station_id']==str(station_df_train.columns[node_name])).dropna().unique()[0]
+    #     # positions[station_df.columns[node_name]] = (x,y)
+    #     positions[node_name] = (x,y)
+
+    # # g = nx.relabel_nodes(g, mapping)
+    # plt.rcParams['figure.figsize'] = [25, 12.5]
+    # plt.rcParams.update({'font.size': 20})
+
+    # fig = plt.figure()
+    # ax = fig.add_subplot(1,1,1, projection=crs.PlateCarree())
+    # # fig, ax = plt.subplots()
+    # ax.set_global()
+    # # ax.stock_img()
+    # ax.add_feature(cfeature.COASTLINE, edgecolor="black")
+    # ax.add_feature(cfeature.BORDERS, edgecolor="black")
+    # ax.add_feature(cfeature.LAND, color="lightgrey")
+    # ax.add_feature(cfeature.LAKES, color="dodgerblue")
+    # ax.add_feature(cfeature.BORDERS, linestyle="--")
+    # ax.add_feature(cfeature.OCEAN, color="dodgerblue")
+    # ax.add_feature(cfeature.RIVERS, color="dodgerblue")
+    # ax.add_feature(cfeature.STATES)
+    # ax.gridlines()
+
+    # d = dict(g.degree)
+    # low, *_, high = sorted(d.values())
+    # norm = mpl.colors.Normalize(vmin=low, vmax=high, clip=True)
+    # mapper = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.coolwarm)
+
+    # nx.draw(g, pos=positions, with_labels=True, node_color=[mapper.to_rgba(i) for i in d.values()])
+
+    # # nx.draw_networkx_nodes(g, pos=positions, node_color=[mapper.to_rgba(i) for i in d.values()])
+    # # nx.draw_networkx_labels(g, pos=positions)
+
+
+    # plt.xlim((df['x'].min()-3, df['x'].max()+3))
+    # plt.ylim((df['y'].min()-3, df['y'].max()+3))
+
+    # scale_bar(ax, 500)
+    # plt.colorbar(mapper)
+    # plt.show()
+
+    # nx.draw_circular(g, with_labels=True)
+    # plt.show()
+
+    # nx.draw(g, with_labels=True)
+    # plt.show()
+
+
     return train_gnn, val_gnn, test_gnn, y_scaler
 
     # torch.save((data, slices, n_node, mean, std_dev), self.processed_paths[0])
 
+
+def scale_bar(ax, length=None, location=(0.5, 0.05), linewidth=3):
+    """
+    ax is the axes to draw the scalebar on.
+    length is the length of the scalebar in km.
+    location is center of the scalebar in axis coordinates.
+    (ie. 0.5 is the middle of the plot)
+    linewidth is the thickness of the scalebar.
+    """
+
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+
+    import cartopy.crs as crs
+    import cartopy.feature as cfeature   
+
+    #Get the limits of the axis in lat long
+    llx0, llx1, lly0, lly1 = ax.get_extent(crs.PlateCarree())
+    #Make tmc horizontally centred on the middle of the map,
+    #vertically at scale bar location
+    sbllx = (llx1 + llx0) / 2
+    sblly = lly0 + (lly1 - lly0) * location[1]
+    tmc = crs.TransverseMercator(sbllx, sblly)
+    #Get the extent of the plotted area in coordinates in metres
+    x0, x1, y0, y1 = ax.get_extent(tmc)
+    #Turn the specified scalebar location into coordinates in metres
+    sbx = x0 + (x1 - x0) * location[0]
+    sby = y0 + (y1 - y0) * location[1]
+
+    #Calculate a scale bar length if none has been given
+    #(Theres probably a more pythonic way of rounding the number but this works)
+    if not length: 
+        length = (x1 - x0) / 5000 #in km
+        ndim = int(np.floor(np.log10(length))) #number of digits in number
+        length = round(length, -ndim) #round to 1sf
+        #Returns numbers starting with the list
+        def scale_number(x):
+            if str(x)[0] in ['1', '2', '5']: return int(x)        
+            else: return scale_number(x - 10 ** ndim)
+        length = scale_number(length) 
+
+    #Generate the x coordinate for the ends of the scalebar
+    bar_xs = [sbx - length * 500, sbx + length * 500]
+    #Plot the scalebar
+    ax.plot(bar_xs, [sby, sby], transform=tmc, color='k', linewidth=linewidth)
+    #Plot the scalebar label
+    ax.text(sbx, sby, str(length) + ' km', transform=tmc,
+            horizontalalignment='center', verticalalignment='bottom')
 
 def create_temporal_graph(n_node, edge_index, edge_attr, config, timesteps, x, y):
     
