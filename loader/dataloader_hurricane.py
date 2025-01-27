@@ -227,11 +227,14 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     station_df_val = station_df_val[station_df_val.columns.intersection(new_common_ids)]
     station_df_test = station_df_test[station_df_test.columns.intersection(new_common_ids)]
 
+
+    print(len(station_df_train.columns))
+
     # Drop column 53:
-    drop_list = [station_df_train.columns[53], station_df_train.columns[71], station_df_train.columns[72], station_df_train.columns[73]]
-    station_df_train.drop(drop_list, axis=1, inplace=True)
-    station_df_val.drop(drop_list, axis=1, inplace=True)
-    station_df_test.drop(drop_list, axis=1, inplace=True)
+    # drop_list = [station_df_train.columns[53], station_df_train.columns[71], station_df_train.columns[72], station_df_train.columns[73]]
+    # station_df_train.drop(drop_list, axis=1, inplace=True)
+    # station_df_val.drop(drop_list, axis=1, inplace=True)
+    # station_df_test.drop(drop_list, axis=1, inplace=True)
 
 
 
@@ -253,9 +256,9 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     # concatenated station_df_train and station_df_val.
     # Fixed for all timesteps
 
-    W=get_distance(df, station_df_train)
+    W=get_distance(df_train, station_df_train)
     # W=get_distance(pd.concat((df_train, df_val, df_test), axis=0, ignore_index=True), pd.concat((station_df_train, station_df_val, station_df_test), axis=0, ignore_index=True))
-    Corr=get_correlation(df, station_df_train)
+    Corr=get_correlation(df_train, station_df_train)
     # Corr=get_correlation(pd.concat((df_train, df_val, df_test), axis=0, ignore_index=True), pd.concat((station_df_train, station_df_val, station_df_test), axis=0, ignore_index=True))
     adj_matrix=create_adjancency_matrix(W,Corr, W_mask, Corr_mask)
     
