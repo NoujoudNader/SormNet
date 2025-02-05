@@ -44,8 +44,8 @@ def get_distance(df, station_df): # NN: save time by filling only lower triangle
         # dist_i = []
         station_i=df[df['station_id']==Ids_new[i]]
         station_i.reset_index(drop=True,inplace=True)
-        lat1=station_i['x'][0]
-        lng1=station_i['y'][0]
+        lat1=station_i['y'][0]
+        lng1=station_i['x'][0]
 
         # for j in range(len(Ids_new)):
         for j in range(i+1):
@@ -54,9 +54,9 @@ def get_distance(df, station_df): # NN: save time by filling only lower triangle
             station_j=df[df['station_id']==Ids_new[j]]
             station_j.reset_index(drop=True,inplace=True)
             #print(station)
-            lat2=station_j['x'][0]
+            lat2=station_j['y'][0]
             
-            lng2=station_j['y'][0]
+            lng2=station_j['x'][0]
             
             dist_arr[i,j]=haversine(lat1, lng1, lat2, lng2)
             # dist= haversine(lat1, lng1, lat2, lng2)
@@ -73,7 +73,7 @@ def get_distance(df, station_df): # NN: save time by filling only lower triangle
     return dist_arr
 
 
-def get_correlation(df, station_df): # NN: save time by filling only lower triangle of matrix, upper triangle=lower triangle
+def get_correlation(station_df): # NN: save time by filling only lower triangle of matrix, upper triangle=lower triangle
     # Ids=df['station_id'].unique()
     # station_df=create_stationDf(df,Ids, 'offset')
     Ids_new=station_df.columns
@@ -83,17 +83,18 @@ def get_correlation(df, station_df): # NN: save time by filling only lower trian
     # Loop through each row of the station data DataFrame
     for i in range(len(Ids_new)):
         # corr_i = []
-        station_i=df[df['station_id']==Ids_new[i]]
-        station_i.reset_index(drop=True,inplace=True)
+        # station_i=df[df['station_id']==Ids_new[i]]
+        # station_i.reset_index(drop=True,inplace=True)
 
         # for j in range(len(Ids_new)):
         for j in range(i+1):
             if j > len(Ids_new):
                 break
 
-            station_j=df[df['station_id']==Ids_new[j]]
-            station_j.reset_index(drop=True,inplace=True)
-            correlation_mat[i,j] = station_i['observed_data'].corr(station_j['observed_data'])
+            # station_j=df[df['station_id']==Ids_new[j]]
+            # station_j.reset_index(drop=True,inplace=True)
+            # correlation_mat[i,j] = station_i['observed_data'].corr(station_j['observed_data'])
+            correlation_mat[i,j] = station_df[Ids_new[i]].corr(station_df[Ids_new[j]])
             # corr = station_i['observed_data'].corr(station_j['observed_data'])
             # corr_i.append(corr)
             
@@ -208,11 +209,13 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     station_df=create_stationDf(df,Ids, 'offset')
     config['N_NODE'] = station_df.shape[1]
 
-    
+    # Split stations_df based on config["SPLITS"]
+    station_df_train, station_df_val, station_df_test = get_splits_hurricanes(station_df, config['SPLITS'])
 
     # Calculate adjacency matrix - fixed for all timesteps
     W=get_distance(df, station_df)
-    Corr=get_correlation(df, station_df)
+    # Corr=get_correlation(df, station_df)
+    Corr=get_correlation(station_df_train)
     adj_matrix=create_adjancency_matrix(W,Corr, W_mask, Corr_mask)
     
     
@@ -234,9 +237,6 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
 
     edge_attr = adj_matrix[filtered_edge_index[0], filtered_edge_index[1]] #get edges attributes 
     # edge_attr = edge_attr.resize_(edge_attr.shape[0], 1)
-
-    # Split stations_df based on config["SPLITS"]
-    station_df_train, station_df_val, station_df_test = get_splits_hurricanes(station_df, config['SPLITS'])
 
 
     x_train, y_train = sliding_window(station_df_train, config, 1)
