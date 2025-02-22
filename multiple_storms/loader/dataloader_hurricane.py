@@ -151,14 +151,17 @@ def create_stationDf(data, Ids, attribute):
     # df_station = pd.DataFrame()
     df_station = {}
 
-
+    min_len = len(data[data['station_id']==Ids[0]]['offset'])
     for id in Ids:
-        sequence=data[data['station_id']==id][attribute] 
+        sequence=data[data['station_id']==id]['offset'] 
         sequence.reset_index(drop=True,inplace=True)
         #print(sequence.shape)
         df_station[id]=sequence
+        if len(df_station[id]) < min_len:
+            min_len = len(df_station[id])
 
     df_station = pd.DataFrame(df_station)
+    df_station = df_station[:min_len]
     df_station=df_station.dropna(axis=1)
 
     
@@ -210,8 +213,12 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     - df (dataframe): The original dataframe of hurricane.
     - config: config object.
     """ 
-    Ids=df['station_id'].unique()   
-    # print("Ids: ",Ids)
+    storms = df['storm'].unique()
+    ids_per_storm = {}
+    for storm in storms:
+        ids_per_storm[storm] = df[df['storm']==storm]['station_id'].unique().tolist()
+
+    Ids = list(set.intersection(*map(set, [ids_per_storm[storm] for storm in storms])))    # print("Ids: ",Ids)
     
 
     # Split df based on config["SPLITS"]
@@ -228,7 +235,7 @@ def prepare_gnn_data(df, config, W_mask=1000, Corr_mask=0.7):
     station_df_test = station_df_test[station_df_test.columns.intersection(new_common_ids)]
 
 
-    print(len(station_df_train.columns))
+    # print(len(station_df_train.columns))
 
     # Drop column 53:
     # drop_list = [station_df_train.columns[53], station_df_train.columns[71], station_df_train.columns[72], station_df_train.columns[73]]
