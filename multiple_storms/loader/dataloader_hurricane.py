@@ -148,23 +148,23 @@ def create_stationDf(data, Ids, attribute):
                     where each station is a column.
     """
     
-    # df_station = pd.DataFrame()
-    df_station = {}
+    ## df_station = pd.DataFrame()
+    # df_station = {}
 
-    min_len = len(data[data['station_id']==Ids[0]]['offset'])
-    for id in Ids:
-        sequence=data[data['station_id']==id]['offset'] 
-        sequence.reset_index(drop=True,inplace=True)
-        #print(sequence.shape)
-        df_station[id]=sequence
-        if len(df_station[id]) < min_len:
-            min_len = len(df_station[id])
+    # min_len = len(data[data['station_id']==Ids[0]]['offset'])
+    # for id in Ids:
+    #     sequence=data[data['station_id']==id]['offset'] 
+    #     sequence.reset_index(drop=True,inplace=True)
+    #     #print(sequence.shape)
+    #     df_station[id]=sequence
+    #     if len(df_station[id]) < min_len:
+    #         min_len = len(df_station[id])
 
-    df_station = pd.DataFrame(df_station)
-    df_station = df_station[:min_len]
-    df_station=df_station.dropna(axis=1)
+    # df_station = pd.DataFrame(df_station)
+    # df_station = df_station[:min_len]
+    # df_station=df_station.dropna(axis=1)
 
-    
+    df_station=data.pivot(index='time_UTC', columns='station_id', values='offset').interpolate(limit=3, direction='forward').dropna(axis=1)
 
     return df_station
 
