@@ -31,17 +31,18 @@ class ST_GAT(torch.nn.Module):
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim+64),
             nn.ReLU(),
-            nn.Linear(hidden_dim+64, in_channels), # Transform to hidden_dim space
+            nn.Linear(hidden_dim+64, hidden_dim+64), # Transform to hidden_dim space
             # nn.ReLU(),
             # nn.Linear(hidden_dim+128, in_channels)
         )
         
         # single graph attentional layer with 8 attention heads
-        self.gat = GATConv(in_channels=in_channels, out_channels=in_channels,
+        self.gat = GATConv(in_channels= hidden_dim+64, out_channels= hidden_dim+64,
             heads=heads, dropout=0.0, concat=False)
-        self.gcn = GCNConv(in_channels=in_channels, out_channels=in_channels, dropout=0.0, concat=False)
+        self.gcn = GCNConv(in_channels= hidden_dim+64, out_channels= in_channels, dropout=0.0, concat=False)
 
         # add two LSTM layers
+        # self.lstm1 = torch.nn.LSTM(input_size=self.n_nodes, hidden_size=lstm1_hidden_size, num_layers=1)
         self.lstm1 = torch.nn.LSTM(input_size=self.n_nodes, hidden_size=lstm1_hidden_size, num_layers=1)
         for name, param in self.lstm1.named_parameters():
             if 'bias' in name:

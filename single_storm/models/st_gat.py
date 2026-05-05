@@ -6,7 +6,7 @@ class ST_GAT(torch.nn.Module):
     """
     Spatio-Temporal Graph Attention Network as presented in https://ieeexplore.ieee.org/document/8903252
     """
-    def __init__(self, in_channels, out_channels, n_nodes, heads=24, dropout=0.0):
+    def __init__(self, in_channels, out_channels, n_nodes, heads=36, dropout=0.0):
         """
         Initialize the ST-GAT model
         :param in_channels Number of input channels
@@ -21,7 +21,7 @@ class ST_GAT(torch.nn.Module):
         self.dropout = dropout
         self.n_nodes = n_nodes
 
-        self.n_preds = 9 #NN: get it from config
+        #self.n_preds = 9 #NN: get it from config
         lstm1_hidden_size = 128   #32
         lstm2_hidden_size = 256  #128
         hidden_dim=128
@@ -102,8 +102,13 @@ class ST_GAT(torch.nn.Module):
 
         # Now reshape into final output
         s = x.shape
-        # [50, 204*9] -> [50, 204, 9]
-        x = torch.reshape(x, (s[0], self.n_nodes, self.n_pred))
-        # [batch_size, 204, 9] ->  [11400, 9]
-        x = torch.reshape(x, (s[0]*self.n_nodes, self.n_pred))
+        if len(s) == 1:
+            x=torch.reshape(x,(self.n_nodes, self.n_pred))
+        else:
+
+            # [timesteps, n_nodes*n_pred] -> [timesteps, n_nodes, n_pred]
+            # [50, 204*9] -> [50, 204, 9]
+            x = torch.reshape(x, (s[0], self.n_nodes, self.n_pred))
+            # [batch_size, 204, 9] ->  [11400, 9]
+            x = torch.reshape(x, (s[0]*self.n_nodes, self.n_pred))
         return x

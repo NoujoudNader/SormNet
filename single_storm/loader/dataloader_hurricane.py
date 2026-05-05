@@ -145,19 +145,20 @@ def create_stationDf(data, Ids, attribute):
     """
     
     # df_station = pd.DataFrame()
-    df_station = {}
+    # df_station = {}
 
 
-    for id in Ids:
-        sequence=data[data['station_id']==id][attribute] 
-        sequence.reset_index(drop=True,inplace=True)
-        #print(sequence.shape)
-        df_station[id]=sequence
+    # for id in Ids:
+    #     sequence=data[data['station_id']==id][attribute] 
+    #     sequence.reset_index(drop=True,inplace=True)
+    #     #print(sequence.shape)
+    #     df_station[id]=sequence
 
-    df_station = pd.DataFrame(df_station)
-    df_station=df_station.dropna(axis=1)
+    # df_station = pd.DataFrame(df_station)
+    # df_station=df_station.dropna(axis=1)
 
-    
+    df_station=data.pivot(index='time_UTC', columns='station_id', values='offset').interpolate(limit=5, direction='forward').dropna(axis=1)
+
 
     return df_station
 

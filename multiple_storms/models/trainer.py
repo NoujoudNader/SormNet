@@ -7,7 +7,7 @@ import os
 import matplotlib.pyplot as plt
 
 from models.st_gat import ST_GAT
-from models.st_gcn import ST_GCN
+# from models.st_gcn import ST_GCN
 
 from utils.math_utils import *
 from torch.utils.tensorboard import SummaryWriter
