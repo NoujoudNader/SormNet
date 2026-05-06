@@ -173,7 +173,7 @@ The framework demonstrates:
 If you use this repository in your work, please cite:
 
 ```bibtex
-@article{YOUR_CITATION_HERE,
+@article{Nader2026,
   title   = {StormNet: A Spatiotemporal Graph Neural Network Framework for Bias Correction of ADCIRC Storm Surge Forecasts},
   author  = {},
   journal = {},
