@@ -1,0 +1,13 @@
+numpy
+pandas
+scikit-learn>=1.4
+matplotlib
+networkx
+tqdm
+cartopy
+
+torch
+torchvision
+torchaudio
+torch-geometric
+tensorboard

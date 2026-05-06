@@ -122,6 +122,8 @@ https://drive.google.com/file/d/1P9wIcU8jkkljnswE0rx5_tiTrFW1X5c5/view?usp=drive
 - PyTorch Geometric
 - CUDA optional (CPU execution supported)
 
+> Note: PyTorch and PyTorch Geometric installation may depend on the local CUDA version. If installation fails, install `torch` and `torch-geometric` following the official instructions for your system, then install the remaining packages from `requirements.txt`.
+
 ### Clone Repository
 
 ```bash
