@@ -12,7 +12,7 @@
 ## Graphical Abstract
 
 <p align="center">
-  <img src="figures/graphical_abstract.pdf" width="900"/>
+  <img src="figures/graphical_abstract.png" width="900"/>
 </p>
 
 ---
