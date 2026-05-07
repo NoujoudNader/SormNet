@@ -87,7 +87,6 @@ The model combines:
 1. **GCN layers** to aggregate neighboring station information
 2. **GAT layers** to learn adaptive spatial attention weights
 3. **LSTM layers** to model temporal evolution
-4. **MLP decoder** for future offset prediction
 
 The learned offsets are then used to correct numerical storm surge forecasts.
 
