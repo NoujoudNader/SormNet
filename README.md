@@ -174,11 +174,12 @@ The framework demonstrates:
 If you use this repository in your work, please cite:
 
 ```bibtex
-@article{Nader2026,
-  title   = {StormNet: A Spatiotemporal Graph Neural Network Framework for Bias Correction of ADCIRC Storm Surge Forecasts},
-  author  = {},
-  journal = {},
-  year    = {}
+@article{nader2026stormnet,
+  title={StormNet: Improving storm surge predictions with a GNN-based spatio-temporal offset forecasting model},
+  author={Nader, Noujoud and Giaremis, Stefanos and Dawson, Clint and Kaiser, Carola and Mohammadiporshokooh, Karame and Kaiser, Hartmut},
+  journal={arXiv e-prints},
+  pages={arXiv--2604},
+  year={2026}
 }
 ```
 
