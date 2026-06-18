@@ -13,12 +13,9 @@ data_df = data_df.where(data_df['offset'].abs() < 3*np.abs(std)).dropna()
 storm_list = ['CHARLEY', 'HERMINE', 'IDALIA', 'IAN', 'DENNIS', 'WILMA', 'DEBBY', 'MICHAEL', 'ETA', 'FRED', 'HELENE', 'MILTON']
 data_df = data_df[data_df['storm'].isin(storm_list)].dropna()
 
-# Keep only stations in the East Coast
-data_df = data_df[(data_df['x'] > -81.871) & (data_df['y'] > 24.711)].dropna()
+# Keep only stations in the Gulf 
+data_df = data_df[(data_df['x'] < -81.875)].dropna()
 
-# Remove stations with <2 edges: 021720677, 8723214
-# exclude_ids = ['021720677', '8723214']
-# data_df = data_df[~data_df['station_id'].isin(exclude_ids)].dropna()
 
 
 # Find common station IDs through all storms
